@@ -64,24 +64,27 @@ def decode(img_bw, symbols_templates):
         detections_ = []
         # Search template for all symbols
         for template in symbols_templates:
-            template_matching = cv2.matchTemplate(
-                template.template,
-                img_patch,
-                cv2.TM_CCOEFF_NORMED
-            )
-            match_locations = np.where(template_matching >= template.matching_threshold)
-            for (x, y) in zip(match_locations[1], match_locations[0]):
-                match = {
-                    "TOP_LEFT_X": x,
-                    "TOP_LEFT_Y": y,
-                    "BOTTOM_RIGHT_X": x + template.template_width,
-                    "BOTTOM_RIGHT_Y": y + template.template_height,
-                    "MATCH_VALUE": template_matching[y, x],
-                    "LABEL": template.label,
-                    "COLOR": template.color
-                }
-                # Append to detections
-                detections_.append(match)
+            try:
+                template_matching = cv2.matchTemplate(
+                    template.template,
+                    img_patch,
+                    cv2.TM_CCOEFF_NORMED
+                )
+                match_locations = np.where(template_matching >= template.matching_threshold)
+                for (x, y) in zip(match_locations[1], match_locations[0]):
+                    match = {
+                        "TOP_LEFT_X": x,
+                        "TOP_LEFT_Y": y,
+                        "BOTTOM_RIGHT_X": x + template.template_width,
+                        "BOTTOM_RIGHT_Y": y + template.template_height,
+                        "MATCH_VALUE": template_matching[y, x],
+                        "LABEL": template.label,
+                        "COLOR": template.color
+                    }
+                    # Append to detections
+                    detections_.append(match)
+            except cv2.error as e:
+                pass
         
         # If no detections, finish
         if len(detections_) > 0:
@@ -94,7 +97,7 @@ def decode(img_bw, symbols_templates):
             filtered = list(filter(lambda obj: obj["TOP_LEFT_X"] <= xmax, d_[1:]))
             fst_ = fst_ + filtered
             # Sort and select the one with highest MATCH_VALUE
-            fst_sorted = sorted(fst_, key=lambda obj["MATCH_VALUE"], reverse=True)
+            fst_sorted = sorted(fst_, key=lambda obj: obj["MATCH_VALUE"], reverse=True)
             detected = fst_sorted[0]
             # Reduce the image to search in
             old_x = detected["BOTTOM_RIGHT_X"]
