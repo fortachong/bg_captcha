@@ -151,6 +151,6 @@ if __name__ == "__main__":
 
     # Detections
     detections = decode(img_bw, st)
-    st = get_string(detections)
-    print(st)
+    st_decoded = get_string(detections)
+    print(st_decoded)
     print()
